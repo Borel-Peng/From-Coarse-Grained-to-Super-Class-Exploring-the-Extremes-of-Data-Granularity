@@ -23,7 +23,8 @@ from utils import train_transform
 from utils import test_transform
 from dataprocessor import FMoW
 from dataprocessor import iWildCam
-
+from dataprocessor import flickr_data_process
+from dataprocessor.Adience import get_adience_train_test_loader
 def get_CIFAR10_re_dataset():
     '''
     based on the specific task, re-organize the labels of the CIFAR10 data
@@ -784,7 +785,12 @@ def getData(dataset_name):
         return FMoW.get_data()
     elif dataset_name == 'iWildCam':
         return iWildCam.get_data()
-
+    elif dataset_name == 'beauty':
+        return flickr_data_process.get_aug_train_test_loader()
+    elif dataset_name == 'beauty(origin)':
+        return flickr_data_process.get_original_label_train_test_loader()
+    elif dataset_name == 'adience':
+        return get_adience_train_test_loader()
     else:
         raise ValueError("No Such Dataset")
 
