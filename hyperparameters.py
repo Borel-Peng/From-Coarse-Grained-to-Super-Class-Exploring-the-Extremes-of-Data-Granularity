@@ -13,6 +13,9 @@ dim_k = 256
 dim_v = 128
 n_heads = 8
 
+# params of CLIP
+clip_model = "" # clip model name, e.g. 'ViT-B/32','RN50'
+clip_mode = ""  # clip mode, e.g. 'zero-shot', 'linear-probe'
 # dataset
 data_set = 'CIFAR100-4'
 
