@@ -2,64 +2,69 @@ from turtle import forward
 import torch
 import torch.nn.functional as F
 
+
 class ContrastiveLoss(torch.nn.Module):
-    def __init__(self, T=0.5):
+    def __init__(self, T=0.5, eps=1e-8):
         super().__init__()
         self.T = T
+        self.eps = eps  # epsilon value added to avoid numerical instability
+
     def forward(self, x, y):
         representations = x
         label = y
         T = self.T
-        n = label.shape[0]  # batch
-        
-        similarity_matrix = F.cosine_similarity(representations.unsqueeze(1), representations.unsqueeze(0), dim=2)
+        n = label.shape[0]  # batch size
+
+        similarity_matrix = F.cosine_similarity(
+            representations.unsqueeze(1), representations.unsqueeze(0), dim=2)
         similarity_matrix = similarity_matrix.cuda()
-        
-        mask = torch.ones_like(similarity_matrix) * (label.expand(n, n).eq(label.expand(n, n).t()))
+
+        # Clip similarity matrix to avoid numerical instability
+        similarity_matrix = torch.clamp(
+            similarity_matrix, min=-1.0 + self.eps, max=1.0 - self.eps)
+
+        # Create mask for matching labels
+        mask = torch.ones_like(similarity_matrix) * \
+            (label.expand(n, n).eq(label.expand(n, n).t()))
         mask = mask.cuda()
 
-        
-        mask_no_sim = torch.ones_like(mask) - mask
+        # Create inverse mask and diagonal mask
+        inverse_mask = torch.ones_like(mask) - mask
+        diagonal_mask = torch.ones(n, n) - torch.eye(n, n)
+        diagonal_mask = diagonal_mask.cuda()
 
-        
-        mask_dui_jiao_0 = torch.ones(n ,n) - torch.eye(n, n )
-        mask_dui_jiao_0 = mask_dui_jiao_0.cuda()
+        # Calculate similarity matrix with temperature scaling
+        similarity_matrix = torch.exp(similarity_matrix / T)
 
-        
-        similarity_matrix = torch.exp(similarity_matrix/T)
+        # Prevent overflow in exponential calculation
+        similarity_matrix = torch.clamp(similarity_matrix, max=1e10)
 
-        
-        similarity_matrix = similarity_matrix*mask_dui_jiao_0
+        similarity_matrix = similarity_matrix * diagonal_mask
 
+        # Split into similar and dissimilar components
+        similar_pairs = mask * similarity_matrix
+        dissimilar_pairs = similarity_matrix - similar_pairs
 
-        
-        sim = mask*similarity_matrix
+        # Calculate sum of dissimilar pairs
+        dissimilar_sum = torch.sum(dissimilar_pairs, dim=1)
 
+        # Expand for matrix computation
+        dissimilar_sum_expanded = dissimilar_sum.repeat(n, 1).T
+        similarity_sum = similar_pairs + dissimilar_sum_expanded
 
-        
-        no_sim = similarity_matrix - sim
+        # Divide, adding epsilon to prevent division by zero
+        loss = torch.div(similar_pairs, similarity_sum + self.eps)
 
+        # Add inverse mask and identity matrix
+        loss = inverse_mask + loss + torch.eye(n, n).cuda()
 
-        
-        no_sim_sum = torch.sum(no_sim , dim=1)
+        # Prevent NaN in log calculation by ensuring values > 0
+        loss = torch.clamp(loss, min=self.eps)
 
-        
-        no_sim_sum_expend = no_sim_sum.repeat(n, 1).T
-        sim_sum  = sim + no_sim_sum_expend
-        loss = torch.div(sim , sim_sum)
-
-
-        
-        #loss = torch.sum(mask_no_sim, loss, torch.eye(n, n ))
-        loss = mask_no_sim + loss + (torch.eye(n, n )).cuda()
-
-
-        
-        loss = -torch.log(loss)  
-        loss = torch.sum(torch.sum(loss, dim=1) )/(2*n)
+        # Calculate final loss
+        loss = -torch.log(loss)
+        loss = torch.sum(torch.sum(loss, dim=1)) / (2 * n)
 
         return loss
 
-#loss_func = ContrastiveLoss()
-
-
+# loss_func = ContrastiveLoss()
