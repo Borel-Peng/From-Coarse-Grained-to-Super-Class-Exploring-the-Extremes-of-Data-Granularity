@@ -1,9 +1,7 @@
 # Superclass Learning with Representation Enhancement
 
 This is the official repo of From Coarse-Grained to Super-Class: Exploring the
-Extremes of Data Granularity.
-
-<!-- The paper: -->
+Extremes of Data Granularity. Here is the [profile](https://borel-peng.github.io/GAMS/) of our paper.
 
 We provide a training example of our model: SCLRE (SuperClass Learning with Representation Enhancement). You can generate the reorganized CIFAR100-4 dataset and train it. After training, you can check the result with the help of tensorboard. Some main package versions used in the program:
 ## 0. Dependencies
@@ -44,7 +42,7 @@ To change the architecture of the model, set `attention=False` to drop CIA, set 
 
 Note that when the backbone is set as a CNN smaller than ResNet50, some network params in `model/TC2.py` need to be reset because these backbones generate representations with smaller dimensions. So we recommend to set this hyperparameter only as `ResNet50`, `ResNet101` and `ResNet152`.
 
-## 5. Train with CLIP
+## 5. Train or Evaluate with CLIP
 Before training with CLIP, you need to change the hpyerparameters in `hyperparameter.py` to set the backbone of CLIP(`ViT-B/32` or `RN50`), the batch size and the name of the dataset. Then run
 ```
 python main_clip.py
@@ -52,7 +50,7 @@ python main_clip.py
 ## 6. Visualization
 We adapt the t-SNE algorithm to visualize the results of `CIFAR10-2` in the file `visualization.ipynb`. You can run the code in the jupyter notebook to visualize the results. 
 
-## 6. Acknowledgements
-This paper is an extension of the conference paper in [CVPR2023](https://openaccess.thecvf.com/content/CVPR2023/papers/Kang_Superclass_Learning_With_Representation_Enhancement_CVPR_2023_paper.pdf).
+## 7. Acknowledgements
+Our paper is an extension of the conference paper in [CVPR2023](https://openaccess.thecvf.com/content/CVPR2023/papers/Kang_Superclass_Learning_With_Representation_Enhancement_CVPR_2023_paper.pdf).
 
-So the code is based on its official [code](https://github.com/ZyGan1999/Superclass-Learning-with-Representation-Enhancement).
+So our code is based on its official [code](https://github.com/ZyGan1999/Superclass-Learning-with-Representation-Enhancement).
