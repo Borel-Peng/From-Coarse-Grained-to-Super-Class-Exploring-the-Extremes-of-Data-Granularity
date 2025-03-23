@@ -1,4 +1,4 @@
-# Superclass Learning with Representation Enhancement
+# From Coarse-Grained to Super-Class: Exploring the Extremes of Data Granularity
 
 This is the official repo of From Coarse-Grained to Super-Class: Exploring the
 Extremes of Data Granularity. Here is the [profile](https://borel-peng.github.io/GAMS/) of our paper.
